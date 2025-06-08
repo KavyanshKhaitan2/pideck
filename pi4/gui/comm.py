@@ -1,11 +1,25 @@
 import serial
 import time
 from typing import TypedDict, Literal
+import shlex
 
 
 class TickLoadingOutput(TypedDict):
     type: Literal["loading_status"]
     data: str
+
+class UIButtonParseOutput(TypedDict):
+    type: Literal["ui_button"]
+    x: int
+    y: int
+    text: str
+    broadcast: bool
+    message: str
+
+class UICleanParseOutput(TypedDict):
+    type: Literal["ui_clean"]
+    width: int
+    height: int
 
 
 class Serial:
@@ -62,12 +76,46 @@ class Serial:
             iters_done += 1
         return False
 
+    def ui_button_parse(self, data: str):
+        args = shlex.split(data)
+        if args[0] != "ui" or args[1] != "button":
+            return
+        x = int(args[2])
+        y = int(args[3])
+        text = args[4]
+        broadcast = True if args[5] == "broadcast" else False
+        message = args[6]
+
+        return UIButtonParseOutput(
+            type="ui_button", x=x, y=y, text=text, broadcast=broadcast, message=message
+        )
+
+    def ui_clean_parse(self, data: str):
+        args = shlex.split(data)
+        if args[0] != "ui" or args[1] != "clean":
+            return
+        width = int(args[2])
+        height = int(args[3])
+
+        try:
+            theme = args[4]
+        except IndexError:
+            theme = None
+        
+        if theme is not None:
+            raise NotImplementedError
+        
+
+        return UICleanParseOutput(
+            type="ui_clean", width=width, height=height
+        )
+
     def tick(self):
         data = self.read()
         if data is not None:
             datalines = data.splitlines()
         else:
-            return
+            datalines = ['NOP']
 
         returnData = []
 
@@ -93,5 +141,17 @@ class Serial:
                             }
                         )
                     )
+            
+            if line.startswith("ui clean"):
+                parsed = self.ui_clean_parse(line)
+                if parsed is not None:
+                    self.send("ok")
+                    returnData.append(parsed)
+            
+            if line.startswith("ui button"):
+                parsed = self.ui_button_parse(line)
+                if parsed is not None:
+                    self.send("ok")
+                    returnData.append(parsed)
 
         return returnData

@@ -2,6 +2,7 @@ import sys
 from PySide6.QtWidgets import QApplication, QVBoxLayout, QWidget
 from PySide6.QtCore import QTimer
 from widgets.resizing_text import ResizingTextWidget
+from widgets.main_grid import MainGridWidget
 import comm
 from comm_updater import comm_updater
 
@@ -19,8 +20,12 @@ class SimpleWindow(QWidget):
         self.loading_widget = ResizingTextWidget("Initial Loading\nWaiting for host...")
         layout.addWidget(self.loading_widget)
 
+        self.main_grid = MainGridWidget(1, 1)
+        layout.addWidget(self.main_grid)
+        self.main_grid.hide()
+        
         self.timer.timeout.connect(self.look_into_serial_comm)
-        self.timer.start(200)
+        self.timer.start(100)
 
         self.setLayout(layout)
 
