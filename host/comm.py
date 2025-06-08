@@ -32,7 +32,7 @@ class Serial:
         else:
             return False
 
-    def send(self, data: str, end=""):
+    def send(self, data: str, end="\n"):
         self.ser.write((data + end).encode("utf-8"))
     
     def wait_for_connection_stage1(

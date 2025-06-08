@@ -1,4 +1,4 @@
-import comm
+import gui.comm as comm
 
 def main():
     ser = comm.Serial(port="/dev/ttyV1")

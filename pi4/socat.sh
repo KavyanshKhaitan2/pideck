@@ -1,0 +1,1 @@
+sudo socat -dd PTY,link=/dev/ttyV0,raw,echo=0,perm=0666 PTY,link=/dev/ttyV1,raw,echo=0,perm=0666
