@@ -1,10 +1,9 @@
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 from PySide6 import QtCore
 
-class LoadingWidget(QWidget):
+class ResizingTextWidget(QWidget):
     def __init__(self, text):
         super().__init__()
-        self.setWindowTitle("PySide6 Simple Example")
         layout = QVBoxLayout()
         
         self.label = QLabel(text, wordWrap=True, alignment=QtCore.Qt.AlignCenter, scaledContents=True)

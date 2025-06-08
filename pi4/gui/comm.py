@@ -67,23 +67,31 @@ class Serial:
         if data is not None:
             datalines = data.splitlines()
         else:
-            datalines = ['NOP']
+            return
+
+        returnData = []
 
         for line in datalines:
             if line:
                 line = line.strip()
             if not self.handshake_complete_stage[1]:
                 if self.wait_for_connection_stage1(iterations=1, delay=0, data=line):
-                    return TickLoadingOutput(
-                        {
-                            "type": "loading_status",
-                            "data": "Initial Loading\nHost is online!",
-                        }
+                    returnData.append(
+                        TickLoadingOutput(
+                            {
+                                "type": "loading_status",
+                                "data": "Initial Loading\nHost is online!",
+                            }
+                        )
                     )
                 else:
-                    return TickLoadingOutput(
-                        {
-                            "type": "loading_status",
-                            "data": "Initial Loading\nWaiting for host...",
-                        }
+                    returnData.append(
+                        TickLoadingOutput(
+                            {
+                                "type": "loading_status",
+                                "data": "Initial Loading\nWaiting for host...",
+                            }
+                        )
                     )
+
+        return returnData
