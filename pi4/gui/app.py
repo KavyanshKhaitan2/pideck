@@ -1,7 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication, QVBoxLayout, QWidget
 from PySide6.QtCore import QTimer
-from widgets.resizing_text import ResizingTextWidget
+from widgets.scalable_text import ScalableTextWidget
 from widgets.main_grid import MainGridWidget
 import comm
 from comm_updater import comm_updater
@@ -17,7 +17,7 @@ class SimpleWindow(QWidget):
         self.setWindowTitle("Pideck Raspberry Pi Client")
         layout = QVBoxLayout()
 
-        self.loading_widget = ResizingTextWidget("Initial Loading\nWaiting for host...")
+        self.loading_widget = ScalableTextWidget("Initial Loading\nWaiting for host...")
         layout.addWidget(self.loading_widget)
 
         self.main_grid = MainGridWidget(1, 1)

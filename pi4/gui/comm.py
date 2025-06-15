@@ -4,17 +4,40 @@ from typing import TypedDict, Literal
 import shlex
 
 
+def shplit(raw_data: str):
+    processed_data = raw_data.replace("\\\\", "\\").replace("\\n", "\n")
+    return shlex.split(processed_data)
+
+
 class TickLoadingOutput(TypedDict):
     type: Literal["loading_status"]
     data: str
+
 
 class UIButtonParseOutput(TypedDict):
     type: Literal["ui_button"]
     x: int
     y: int
+    x_span: int
+    y_span: int
     text: str
     broadcast: bool
     message: str
+
+
+class UIColorParseOutput(TypedDict):
+    type: Literal["ui_bgcolor", "ui_textcolor"]
+    x: int
+    y: int
+    color: str
+
+
+class UIIconParseOutput(TypedDict):
+    type: Literal["ui_icon"]
+    x: int
+    y: int
+    base64icon: str
+
 
 class UICleanParseOutput(TypedDict):
     type: Literal["ui_clean"]
@@ -77,21 +100,68 @@ class Serial:
         return False
 
     def ui_button_parse(self, data: str):
-        args = shlex.split(data)
-        if args[0] != "ui" or args[1] != "button":
+        args = shplit(data)
+        if args[0] != "ui":
             return
+
+        if args[1] != "button":
+            return
+
         x = int(args[2])
         y = int(args[3])
-        text = args[4]
-        broadcast = True if args[5] == "broadcast" else False
-        message = args[6]
+
+        x_span = int(args[4])
+        y_span = int(args[5])
+
+        text = args[6]
+
+        broadcast = True if args[7] == "broadcast" else False
+        message = args[8]
 
         return UIButtonParseOutput(
-            type="ui_button", x=x, y=y, text=text, broadcast=broadcast, message=message
+            type="ui_button",
+            x=x,
+            y=y,
+            x_span=x_span,
+            y_span=y_span,
+            text=text,
+            broadcast=broadcast,
+            message=message,
         )
 
+    def ui_color_parse(self, data: str):
+        args = shplit(data)
+
+        if args[0] != "ui":
+            return
+
+        if args[1] not in ["bgcolor", "textcolor"]:
+            return
+
+        x = int(args[2])
+        y = int(args[3])
+
+        color = args[4]
+
+        return UIColorParseOutput(type=f"ui_{args[1]}", x=x, y=y, color=color)
+
+    def ui_icon_parse(self, data: str):
+        args = shplit(data)
+
+        if args[0] != "ui":
+            return
+
+        if args[1] != "icon":
+            return
+
+        x = int(args[2])
+        y = int(args[3])
+
+        base64icon = args[4]
+        return UIIconParseOutput(type="ui_icon", x=x, y=y, base64icon=base64icon)
+
     def ui_clean_parse(self, data: str):
-        args = shlex.split(data)
+        args = shplit(data)
         if args[0] != "ui" or args[1] != "clean":
             return
         width = int(args[2])
@@ -101,21 +171,18 @@ class Serial:
             theme = args[4]
         except IndexError:
             theme = None
-        
+
         if theme is not None:
             raise NotImplementedError
-        
 
-        return UICleanParseOutput(
-            type="ui_clean", width=width, height=height
-        )
+        return UICleanParseOutput(type="ui_clean", width=width, height=height)
 
     def tick(self):
         data = self.read()
         if data is not None:
             datalines = data.splitlines()
         else:
-            datalines = ['NOP']
+            datalines = ["NOP"]
 
         returnData = []
 
@@ -141,15 +208,27 @@ class Serial:
                             }
                         )
                     )
-            
+
             if line.startswith("ui clean"):
                 parsed = self.ui_clean_parse(line)
                 if parsed is not None:
                     self.send("ok")
                     returnData.append(parsed)
-            
+
             if line.startswith("ui button"):
                 parsed = self.ui_button_parse(line)
+                if parsed is not None:
+                    self.send("ok")
+                    returnData.append(parsed)
+
+            if line.startswith("ui bgcolor") or line.startswith("ui textcolor"):
+                parsed = self.ui_color_parse(line)
+                if parsed is not None:
+                    self.send("ok")
+                    returnData.append(parsed)
+
+            if line.startswith("ui icon"):
+                parsed = self.ui_icon_parse(line)
                 if parsed is not None:
                     self.send("ok")
                     returnData.append(parsed)

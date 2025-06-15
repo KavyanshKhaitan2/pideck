@@ -1,13 +1,16 @@
-from PySide6.QtWidgets import QLabel, QGridLayout, QWidget, QApplication, QPushButton
-from PySide6.QtCore import QTimer, QSize
+from PySide6.QtWidgets import QLabel, QGridLayout, QWidget, QApplication, QPushButton, QSizePolicy
+from PySide6.QtCore import QTimer, QSize, Qt
 import sys
-
+from widgets.scalable_button import ScalableButton
+import random
 
 class MainGridWidget(QWidget):
     def __init__(self, width: int, height: int):
         super().__init__()
         self.timer = QTimer()
+        
         self.gridlayout = QGridLayout()
+        self.gridlayout.setSpacing(1)
 
         self.array_size = (width, height)
 
@@ -16,6 +19,7 @@ class MainGridWidget(QWidget):
         self.resizeGrid(width, height)
 
         self.setLayout(self.gridlayout)
+        
 
     def addWidget(self, widget: QWidget, x: int, y: int, x_span=1, y_span=1, save=True):
         if x >= self.array_size[0]:
@@ -34,6 +38,7 @@ class MainGridWidget(QWidget):
 
         if save:
             self.widgets[(x, y)] = widget
+        widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.gridlayout.addWidget(widget, y, x, y_span, x_span)
 
@@ -45,11 +50,16 @@ class MainGridWidget(QWidget):
 
         self.widgets = {}
 
+        for x in range(width):
+            self.gridlayout.setColumnStretch(x, 1)
+        for y in range(height):
+            self.gridlayout.setRowStretch(y, 1)
+        
         self.addWidget(QLabel(), 0, 0, width, height, save=False)
         for x in range(width):
             for y in range(height):
-                btn = QPushButton()
-                btn.setMaximumSize(QSize(9999, 9999))
+                btn = ScalableButton()
+                # btn = QPushButton()
                 self.addWidget(btn, x, y)
 
 

@@ -1,7 +1,15 @@
-from comm import TickLoadingOutput, UIButtonParseOutput, UICleanParseOutput
+from comm import (
+    TickLoadingOutput,
+    UIButtonParseOutput,
+    UICleanParseOutput,
+    UIColorParseOutput,
+    UIIconParseOutput,
+)
 from .handle_loading_status import handle_loading_status
 from .handle_ui_button import handle_ui_button
 from .handle_ui_clean import handle_ui_clean
+from .handle_ui_color import handle_ui_color
+from .handle_ui_icon import handle_ui_icon
 
 
 def update_comm(self, dataList: list[dict] | None):
@@ -23,3 +31,11 @@ def update_comm(self, dataList: list[dict] | None):
         if data["type"] == "ui_button":
             data = UIButtonParseOutput(data)
             handle_ui_button(self, data)
+
+        if data["type"] in ["ui_bgcolor", "ui_textcolor"]:
+            data = UIColorParseOutput(data)
+            handle_ui_color(self, data)
+
+        if data["type"] in ["ui_icon"]:
+            data = UIIconParseOutput(data)
+            handle_ui_icon(self, data)

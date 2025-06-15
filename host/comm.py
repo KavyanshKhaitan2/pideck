@@ -33,6 +33,7 @@ class Serial:
             return False
 
     def send(self, data: str, end="\n"):
+        data = data.replace("\\", "\\\\").replace("\n", "\\n")
         self.ser.write((data + end).encode("utf-8"))
     
     def wait_for_connection_stage1(
